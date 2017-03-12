@@ -2,6 +2,8 @@ package sample;
 
 import javafx.event.ActionEvent;
 import javafx.scene.control.Button;
+import javafx.scene.control.TableView;
+
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -62,6 +64,7 @@ public class Controller {
 
 
     }
+
     private static JSONArray getJSONobjectResponse(HttpURLConnection con){
         try {
             StringBuilder sb = new StringBuilder();
