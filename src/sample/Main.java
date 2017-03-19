@@ -6,6 +6,8 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
+import sample.Controller;
+
 public class Main extends Application {
 
     @Override
@@ -15,6 +17,8 @@ public class Main extends Application {
         primaryStage.setMinHeight(480);
         primaryStage.setMinWidth(600);
         primaryStage.setScene(new Scene(root, 600, 480));
+        Controller.init(root);
+
         primaryStage.show();
     }
 
