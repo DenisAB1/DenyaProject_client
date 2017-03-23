@@ -9,10 +9,7 @@ import javafx.scene.Parent;
 import javafx.scene.control.*;
 
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -22,6 +19,10 @@ import java.util.List;
 import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.AnchorPane;
+import org.apache.poi.hssf.usermodel.HSSFSheet;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.util.CellRangeAddress;
+import org.apache.poi.xssf.usermodel.*;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -41,7 +42,9 @@ public class Controller {
     @FXML
     private static Button Button_AddToChosen;
     @FXML
+    private static Button Button_AddToExcel;
 
+    @FXML
     private static TableView TableView_Main;
     @FXML
     private static TableView TableView_Chosen;
@@ -76,6 +79,7 @@ public class Controller {
         Button_AddToChosen = (Button) anchorPane_main.getChildren().get(3);
 
         TableView_Chosen = (TableView) anchorPane_chosen.getChildren().get(0);
+        Button_AddToExcel = (Button) anchorPane_chosen.getChildren().get(1);
 
         TableView_Chosen.setItems(chosenList);
 
@@ -108,14 +112,15 @@ public class Controller {
             System.err.println("Can not open connection. " + e1);
         }
 
-        JSONArray jsonArray = null;
+        //JSONArray jsonArray = null;
+        JSONObject jsonArray = null;
 
         try {
             if(con.getResponseCode() != HttpURLConnection.HTTP_OK){
 
             }
             else{
-                jsonArray = getJSONobjectResponse(con);
+                jsonArray = (JSONObject)getJSONobjectResponse(con);
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -124,7 +129,7 @@ public class Controller {
         ObservableList<Row> rowList = FXCollections.observableArrayList();
         //rowList.removeAll();
         TableView_Main.setItems(rowList);
-        if(jsonArray != null){
+        /*if(jsonArray != null){
             for (int i = 0; i < jsonArray.length(); i++){
                 try {
                     Row row = new Row((JSONObject)jsonArray.get(i));
@@ -133,7 +138,10 @@ public class Controller {
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
-            }
+            }*/
+        Row row = new Row((JSONObject)jsonArray);
+        rowList.add(row);
+        //System.out.println(jsonArray.toString());
 
             //tableView.getItems().addAll(rowList);
             //System.err.println(rowList.get(0));
@@ -141,7 +149,7 @@ public class Controller {
             //System.err.println(rowList.get(2));
             //tableView.getColumns().get(0).toString();
 
-        }
+
 
 
 
@@ -152,7 +160,43 @@ public class Controller {
         chosenList.addAll(TableView_Main.getSelectionModel().getSelectedItems());
     }
 
-    private static JSONArray getJSONobjectResponse(HttpURLConnection con){
+    public void Button_AddToExcel_Action(ActionEvent event){
+         try {
+
+             FileInputStream file = new FileInputStream(new File("C:\\Users\\User\\Desktop\\3.xlsx"));
+             //FileInputStream file = new FileInputStream(new File("C:\\test.xlsx"));
+             System.out.println(file);
+             XSSFWorkbook workbook = new XSSFWorkbook (file);
+             XSSFSheet sheet = workbook.getSheetAt(0);
+
+             for (int i = 0; i < chosenList.size(); i++){
+                 sheet.getRow(19 + i).getCell(0).setCellValue(chosenList.get(i).getManufacturer()); //производитель
+                 sheet.getRow(19 + i).getCell(1).setCellValue(chosenList.get(i).getCode()); // код
+                 sheet.getRow(19 + i).getCell(2).setCellValue(chosenList.get(i).getName()); // описание
+                 sheet.getRow(19 + i).getCell(5).setCellValue(Double.parseDouble(chosenList.get(i).getPrice())); // цена
+                 if(i >= chosenList.size() - 1)
+                     break;
+                 sheet.shiftRows(20 + i, sheet.getLastRowNum(), 1);
+                 sheet.createRow(20 + i);
+                 CopyRow.CopyRow1(workbook, sheet, 19 + i, 20 + i);
+             }
+
+             sheet.setForceFormulaRecalculation(true);
+
+             file.close();
+
+             FileOutputStream outFile =new FileOutputStream(new File("C:\\Users\\User\\Desktop\\1.xlsx"));
+             workbook.write(outFile);
+             outFile.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    private static JSONObject getJSONobjectResponse(HttpURLConnection con){
         try {
             StringBuilder sb = new StringBuilder();
             String jsonObjects;
@@ -165,7 +209,8 @@ public class Controller {
                 }
                 br.close();
                 try {
-                    return new JSONArray(sb.toString());
+                    return new JSONObject(sb.toString());
+                    //return new JSONArray(sb.toString());
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -179,4 +224,5 @@ public class Controller {
         }
         return null;
     }
+
 }
