@@ -12,7 +12,7 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception{
-        Parent root = FXMLLoader.load(getClass().getResource("sampleTest.fxml"));
+        Parent root = FXMLLoader.load(getClass().getResource("sampleTestPagination.fxml"));
         primaryStage.setTitle("Bauhaus database");
         primaryStage.setMinHeight(480);
         primaryStage.setMinWidth(750);

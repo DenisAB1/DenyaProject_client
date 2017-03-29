@@ -1,24 +1,30 @@
 package sample;
 
+import com.sun.javafx.fxml.builder.URLBuilder;
+import com.sun.org.apache.xalan.internal.utils.XMLSecurityManager;
+import com.sun.org.apache.xml.internal.security.keys.keyresolver.implementations.PrivateKeyResolver;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.*;
 
 
 import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
+import javafx.util.Callback;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.util.CellRangeAddress;
@@ -28,6 +34,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 public class Controller {
+    private final static int LIMIT = 25;
+
     @FXML
     private static SplitPane splitPane;
     @FXML
@@ -43,31 +51,30 @@ public class Controller {
     private static Button Button_AddToChosen;
     @FXML
     private static Button Button_AddToExcel;
+    @FXML
+    private static Pagination pagination;
+
+    @FXML
+    private static HBox hBox_params;
+    @FXML
+    private static TextField TextField_Code;
+    @FXML
+    private static TextField TextField_Manufacturer;
+    @FXML
+    private static TextField TextField_Name;
+    @FXML
+    private static TextField TextField_Price;
+
 
     @FXML
     private static TableView TableView_Main;
     @FXML
     private static TableView TableView_Chosen;
-    @FXML
 
-    private static TextField TextField_Code;
 
     private static ObservableList<Row> chosenList = FXCollections.observableArrayList();
 
     public static void init(Parent root){
-        /*Button_GetRow = (Button) root.getChildrenUnmodifiable().get(0);
-        tableView = (TableView) root.getChildrenUnmodifiable().get(1);
-        TextField_Code = (TextField) root.getChildrenUnmodifiable().get(2);
-        ((TableColumn)tableView.getColumns().get(0)).setCellValueFactory(new PropertyValueFactory<>("code"));
-        ((TableColumn)tableView.getColumns().get(1)).setCellValueFactory(new PropertyValueFactory<>("manufacturer"));
-        ((TableColumn)tableView.getColumns().get(2)).setCellValueFactory(new PropertyValueFactory<>("name"));
-        ((TableColumn)tableView.getColumns().get(3)).setCellValueFactory(new PropertyValueFactory<>("price"));
-        //((TableColumn)tableView.getColumns().get(4)).setCellValueFactory(nwe );
-        tableView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);*/
-        //System.err.println(root.getChildrenUnmodifiable().get(0));
-        /*Button_GetRow = (Button) root.lookup("Button_GetRow");
-        TextField_Code = (TextField) root.lookup("TextField_Code");
-        tableView = (TableView) root.lookup("TableView_Rows");*/
 
         splitPane = (SplitPane) root.getChildrenUnmodifiable().get(0);
         anchorPane_main = (AnchorPane) splitPane.getItems().get(0);
@@ -75,8 +82,15 @@ public class Controller {
 
         TableView_Main = (TableView) anchorPane_main.getChildren().get(0);
         Button_GetRow = (Button) anchorPane_main.getChildren().get(1);
-        TextField_Code = (TextField) anchorPane_main.getChildren().get(2);
-        Button_AddToChosen = (Button) anchorPane_main.getChildren().get(3);
+        //TextField_Code = (TextField) anchorPane_main.getChildren().get(2);
+        Button_AddToChosen = (Button) anchorPane_main.getChildren().get(2);
+        pagination = (Pagination) anchorPane_main.getChildren().get(3);
+        hBox_params = (HBox) anchorPane_main.getChildren().get(4);
+
+        TextField_Code = (TextField) hBox_params.getChildren().get(0);
+        TextField_Manufacturer = (TextField) hBox_params.getChildren().get(1);
+        TextField_Name = (TextField) hBox_params.getChildren().get(2);
+        TextField_Price = (TextField) hBox_params.getChildren().get(3);
 
         TableView_Chosen = (TableView) anchorPane_chosen.getChildren().get(0);
         Button_AddToExcel = (Button) anchorPane_chosen.getChildren().get(1);
@@ -91,15 +105,61 @@ public class Controller {
         ((TableColumn)TableView_Main.getColumns().get(3)).setCellValueFactory(new PropertyValueFactory<>("price"));
         TableView_Main.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
+        pagination.setVisible(false);
+        pagination.setPageFactory(new Callback<Integer, Node>() {
+            @Override
+            public Node call(Integer pageIndex) {
+                return createPage(pageIndex);
+            }
+        });
 
     }
 
-    public void Button_GetRow_Action(ActionEvent event){
+    public static VBox createPage(int pageIndex) {
+        if(CachedPages.getTotalComponentNumber() != 0) {
+            if(CachedPages.getPageElements(pageIndex) == null) {
+                HttpURLConnection con = sendRequest(LIMIT, pageIndex * LIMIT);
+
+                getJSONobjectResponse(con, pageIndex);
+            }
+
+            ObservableList<Row> rowList = FXCollections.observableArrayList();
+
+            TableView_Main.setItems(rowList);
+
+            if (CachedPages.getPageElements(pageIndex) != null) {
+                for (int i = 0; i < CachedPages.getPageElements(pageIndex).length(); i++) {
+                    try {
+                        Row row = new Row((JSONObject) CachedPages.getPageElements(pageIndex).get(i));
+                        rowList.add(row);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+        return new VBox();
+    }
+
+    public static HttpURLConnection sendRequest(int limit, int startFrom){
         URL object = null;
         HttpURLConnection con = null;
-
+        System.out.println("new request");
         try {
-            object = new URL("http://localhost:8080/component/" + TextField_Code.getText().trim());
+            String stringURL = null;
+            try {
+                stringURL = "http://localhost:8080/component?" +
+                        "name=" + URLEncoder.encode(TextField_Name.getText().trim(), "UTF-8") +
+                        "&manufacturer=" + URLEncoder.encode(TextField_Manufacturer.getText().trim(), "UTF-8") +
+                        "&price=" + URLEncoder.encode(TextField_Price.getText().trim(), "UTF-8") +
+                        "&code=" + URLEncoder.encode(TextField_Code.getText().trim(), "UTF-8") +
+                        "&limit=" + URLEncoder.encode(String.valueOf(limit).trim(), "UTF-8") +
+                        "&startFrom=" + URLEncoder.encode(String.valueOf(startFrom).trim(), "UTF-8");
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
+            //System.out.println(stringURL);
+            object = new URL(stringURL);
         } catch (MalformedURLException e) {
             e.printStackTrace();
         }
@@ -108,52 +168,43 @@ public class Controller {
             con = (HttpURLConnection) object.openConnection();
             con.setRequestMethod("GET");
             con.setRequestProperty("Accept", "application/json");
-        } catch (IOException e1) {
-            System.err.println("Can not open connection. " + e1);
-        }
-
-        //JSONArray jsonArray = null;
-        JSONObject jsonArray = null;
-
-        try {
-            if(con.getResponseCode() != HttpURLConnection.HTTP_OK){
-
-            }
-            else{
-                jsonArray = (JSONObject)getJSONobjectResponse(con);
-            }
         } catch (IOException e) {
-            e.printStackTrace();
+            System.err.println("Can not open connection. " + e);
         }
-        //List<Row> newRows = new ArrayList<Row>();
-        ObservableList<Row> rowList = FXCollections.observableArrayList();
-        //rowList.removeAll();
-        TableView_Main.setItems(rowList);
-        /*if(jsonArray != null){
-            for (int i = 0; i < jsonArray.length(); i++){
-                try {
-                    Row row = new Row((JSONObject)jsonArray.get(i));
-                    rowList.add(row);
+        return con;
+    }
 
+    public void Button_GetRow_Action(ActionEvent event){
+        CachedPages.clearMap();
+        CachedPages.setTotalComponentNumber(0);
+
+        HttpURLConnection con = sendRequest(LIMIT,0);
+
+        getJSONobjectResponse(con, 0);
+
+        if(CachedPages.getTotalComponentNumber() > LIMIT)
+            pagination.setVisible(true);
+        else
+            pagination.setVisible(false);
+
+        pagination.setPageCount(CachedPages.getTotalComponentNumber()/LIMIT + 1);
+
+        System.out.println("Total" + CachedPages.getTotalComponentNumber());
+
+        ObservableList<Row> rowList = FXCollections.observableArrayList();
+
+        TableView_Main.setItems(rowList);
+
+        if(CachedPages.getPageElements(0) != null) {
+            for (int i = 0; i < CachedPages.getPageElements(0).length(); i++) {
+                try {
+                    Row row = new Row((JSONObject) CachedPages.getPageElements(0).get(i));
+                    rowList.add(row);
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
-            }*/
-        Row row = new Row((JSONObject)jsonArray);
-        rowList.add(row);
-        //System.out.println(jsonArray.toString());
-
-            //tableView.getItems().addAll(rowList);
-            //System.err.println(rowList.get(0));
-            //System.err.println(rowList.get(1));
-            //System.err.println(rowList.get(2));
-            //tableView.getColumns().get(0).toString();
-
-
-
-
-
-
+            }
+        }
     }
 
     public void Button_AddToChosen_Action(ActionEvent event){
@@ -196,10 +247,11 @@ public class Controller {
 
     }
 
-    private static JSONObject getJSONobjectResponse(HttpURLConnection con){
+    private static JSONArray getJSONobjectResponse(HttpURLConnection con, int page){
         try {
             StringBuilder sb = new StringBuilder();
-            String jsonObjects;
+            int totalComponentNumber = 0;
+            JSONArray components;
             if (con.getResponseCode() == HttpURLConnection.HTTP_OK) {
                 BufferedReader br = new BufferedReader(
                         new InputStreamReader(con.getInputStream(), "utf-8"));
@@ -208,12 +260,23 @@ public class Controller {
                     sb.append(line + "\n");
                 }
                 br.close();
+                JSONObject jsonResponse = null;
+                try{
+                    jsonResponse = new JSONObject(sb.toString());
+                }
+                catch (JSONException e){
+                    System.err.println("Can not create JSONObject. Server returned String in wrong format");
+                    //e.printStackTrace();
+                }
                 try {
-                    return new JSONObject(sb.toString());
-                    //return new JSONArray(sb.toString());
+                    //totalComponentNumber = (int)jsonResponse.get("totalComponentNumber");
+                    if(CachedPages.getTotalComponentNumber() == 0)
+                        CachedPages.setTotalComponentNumber((int)jsonResponse.get("totalComponentNumber"));
+                    CachedPages.setMap(page, (JSONArray)jsonResponse.get("components"));
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
+                //System.out.println(jsonResponse);
             } else {
                 System.out.println(con.getResponseMessage());
                 return null;
