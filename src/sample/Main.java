@@ -12,13 +12,18 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception{
-        Parent root = FXMLLoader.load(getClass().getResource("sampleTestPagination.fxml"));
-        primaryStage.setTitle("Bauhaus database");
-        primaryStage.setMinHeight(480);
-        primaryStage.setMinWidth(750);
-        primaryStage.setScene(new Scene(root, 750, 480));
+        //Parent root = FXMLLoader.load(getClass().getResource("sampleTestPagination.fxml"));
+        Parent root = FXMLLoader.load(getClass().getResource("RegistrationScene.fxml"));
+        primaryStage.setTitle("RTC workitems creator");
+        //primaryStage.setMinHeight(480);
+        //primaryStage.setMinWidth(750);
+        primaryStage.setMinHeight(323);
+        primaryStage.setMinWidth(515);
+        primaryStage.setResizable(false);
+        primaryStage.setScene(new Scene(root, 505, 313));
 
-        Controller.init(root, primaryStage);
+        //Controller.init(root, primaryStage);
+        Controller.init1(root, primaryStage);
 
         primaryStage.show();
     }

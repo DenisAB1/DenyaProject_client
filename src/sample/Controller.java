@@ -7,14 +7,17 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Node;
 import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 
 
 import java.io.*;
 import java.net.*;
+import java.sql.Time;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -54,6 +57,15 @@ public class Controller {
     private final static int LIMIT = 25;
 
     @FXML
+    private static Button Button_Login;
+    @FXML
+    private static TextField TextFieldLogin;
+    @FXML
+    private static SplitPane RegSplitPane;
+    @FXML
+    private static AnchorPane RegAnchorPane_main;
+
+    @FXML
     private static SplitPane splitPane;
     @FXML
     private static AnchorPane anchorPane_main;
@@ -91,7 +103,13 @@ public class Controller {
 
     private static ObservableList<Row> chosenList = FXCollections.observableArrayList();
     private static Stage primaryStage;
-
+    public static void init1(Parent root, Stage stage) {
+        primaryStage = stage;
+        RegSplitPane = (SplitPane) root.getChildrenUnmodifiable().get(0);
+        RegAnchorPane_main = (AnchorPane) RegSplitPane.getItems().get(1);
+        TextFieldLogin = (TextField) RegAnchorPane_main.getChildren().get(2);
+        Button_Login = (Button) RegAnchorPane_main.getChildren().get(5);
+    }
     public static void init(Parent root, Stage stage){
         primaryStage = stage;
 
@@ -250,7 +268,7 @@ public class Controller {
                     sb.append(line + "\n");
                 }
                 br.close();
-                //System.out.println(sb.toString());
+                System.out.println(sb.toString());
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             } catch (IOException e) {
@@ -258,68 +276,68 @@ public class Controller {
             }
         }
 
-        MultipartEntity entity = new MultipartEntity();
-        entity.addPart("file", new FileBody(file));
-
-        HttpPost request = new HttpPost("http://localhost:8080/component");
-        request.setEntity(entity);
-
-        HttpClient client = new DefaultHttpClient();
-        try {
-            HttpResponse response = client.execute(request);
-
-            if(response.getStatusLine().toString().contains("404")){
-                //entity.consumeContent();
-                //there is no mapping
-                MultipartEntity entity1 = new MultipartEntity();
-                entity1.addPart("name", new StringBody("Description 1+Description 2+Description 3"));
-                entity1.addPart("manufacturer", new StringBody("\\\"XAL\\\""));
-                entity1.addPart("price", new StringBody("EUR"));
-                entity1.addPart("code", new StringBody("Code"));
-
-                HttpPost request1 = new HttpPost("http://localhost:8080/mapping");
-                request1.setEntity(entity1);
-
-                HttpClient client1 = new DefaultHttpClient();
-
-                try {
-                    HttpResponse response1 = client1.execute(request1);
-                    System.out.println(response1.getStatusLine());
-                }  catch (IOException e) {
-                    e.printStackTrace();
-                }
-
-                /*URL object = null;
-                HttpURLConnection con = null;
-                System.out.println("new mapping");
-                try {
-                    String stringURL = null;
-                    try {
-                        stringURL = "http://localhost:8080/mapping?" +
-                                "name=" + URLEncoder.encode("Description 1+Description 2+Description 3", "UTF-8") +
-                                "&manufacturer=" + URLEncoder.encode("\"XAL\"", "UTF-8") +
-                                "&price=" + URLEncoder.encode("EUR", "UTF-8") +
-                                "&code=" + URLEncoder.encode("Code", "UTF-8");
-                    } catch (UnsupportedEncodingException e) {
-                        e.printStackTrace();
-                    }
-                    object = new URL(stringURL);
-                } catch (MalformedURLException e) {
-                    e.printStackTrace();
-                }
-
-                try {
-                    con = (HttpURLConnection) object.openConnection();
-                    con.setRequestMethod("POST");
-                    con.setRequestProperty("Accept", "application/json");
-                } catch (IOException e) {
-                    System.err.println("Can not open connection. " + e);
-                }
-                System.out.println("Con resp code: " + con.getResponseCode());*/
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+//        MultipartEntity entity = new MultipartEntity();
+//        entity.addPart("file", new FileBody(file));
+//
+//        HttpPost request = new HttpPost("http://localhost:8080/component");
+//        request.setEntity(entity);
+//
+//        HttpClient client = new DefaultHttpClient();
+//        try {
+//            HttpResponse response = client.execute(request);
+//
+//            if(response.getStatusLine().toString().contains("404")){
+//                //entity.consumeContent();
+//                //there is no mapping
+//                MultipartEntity entity1 = new MultipartEntity();
+//                entity1.addPart("name", new StringBody("Description 1+Description 2+Description 3"));
+//                entity1.addPart("manufacturer", new StringBody("\\\"XAL\\\""));
+//                entity1.addPart("price", new StringBody("EUR"));
+//                entity1.addPart("code", new StringBody("Code"));
+//
+//                HttpPost request1 = new HttpPost("http://localhost:8080/mapping");
+//                request1.setEntity(entity1);
+//
+//                HttpClient client1 = new DefaultHttpClient();
+//
+//                try {
+//                    HttpResponse response1 = client1.execute(request1);
+//                    System.out.println(response1.getStatusLine());
+//                }  catch (IOException e) {
+//                    e.printStackTrace();
+//                }
+//
+////                /*URL object = null;
+////                HttpURLConnection con = null;
+////                System.out.println("new mapping");
+////                try {
+////                    String stringURL = null;
+////                    try {
+////                        stringURL = "http://localhost:8080/mapping?" +
+////                                "name=" + URLEncoder.encode("Description 1+Description 2+Description 3", "UTF-8") +
+////                                "&manufacturer=" + URLEncoder.encode("\"XAL\"", "UTF-8") +
+////                                "&price=" + URLEncoder.encode("EUR", "UTF-8") +
+////                                "&code=" + URLEncoder.encode("Code", "UTF-8");
+////                    } catch (UnsupportedEncodingException e) {
+////                        e.printStackTrace();
+////                    }
+////                    object = new URL(stringURL);
+////                } catch (MalformedURLException e) {
+////                    e.printStackTrace();
+////                }
+////
+////                try {
+////                    con = (HttpURLConnection) object.openConnection();
+////                    con.setRequestMethod("POST");
+////                    con.setRequestProperty("Accept", "application/json");
+////                } catch (IOException e) {
+////                    System.err.println("Can not open connection. " + e);
+////                }
+////                System.out.println("Con resp code: " + con.getResponseCode());*/
+//            }
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
     }
 
     public void Button_AddToExcel_Action(ActionEvent event){
@@ -399,4 +417,29 @@ public class Controller {
         return null;
     }
 
+    public void Button_Login_Action(ActionEvent event){
+        try {
+            if(TextFieldLogin.getText().trim().equals("dzianis.bredneu@sk.ibm.com")) {
+                Thread.sleep(4000);
+                Parent root = FXMLLoader.load(getClass().getResource("sampleTestPagination.fxml"));
+                primaryStage.setMinHeight(480);
+                primaryStage.setMinWidth(750);
+                primaryStage.setResizable(true);
+                primaryStage.setScene(new Scene(root, 750, 480));
+                Controller.init(root, primaryStage);
+            }
+            else {
+                Thread.sleep(4000);
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Error");
+                alert.setHeaderText("Unable to log in to server");
+                alert.setContentText("Invalid login or password!");
+
+                alert.showAndWait();
+            }
+        }
+        catch(Exception e){
+            e.printStackTrace();
+        }
+    }
 }
