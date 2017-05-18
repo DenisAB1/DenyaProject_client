@@ -17,7 +17,8 @@ public class Main extends Application {
         primaryStage.setMinHeight(480);
         primaryStage.setMinWidth(750);
         primaryStage.setScene(new Scene(root, 750, 480));
-        Controller.init(root);
+
+        Controller.init(root, primaryStage);
 
         primaryStage.show();
     }

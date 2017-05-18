@@ -39,5 +39,7 @@
     <orderEntry type="library" name="java-json" level="project" />
     <orderEntry type="library" name="poi-3.9" level="project" />
     <orderEntry type="library" name="org.apache.poi:poi-ooxml:3.9" level="project" />
+    <orderEntry type="library" name="org.apache.httpcomponents:httpclient:4.5.2" level="project" />
+    <orderEntry type="library" name="org.apache.httpcomponents:httpmime:4.5.3" level="project" />
   </component>
 </module>

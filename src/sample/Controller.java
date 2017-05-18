@@ -24,7 +24,22 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.stage.FileChooser;
+import javafx.stage.Stage;
 import javafx.util.Callback;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.EntityBuilder;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.mime.MultipartEntity;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.apache.http.entity.mime.content.ContentBody;
+import org.apache.http.entity.mime.content.FileBody;
+import org.apache.http.entity.mime.content.StringBody;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.util.EntityUtils;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.util.CellRangeAddress;
@@ -32,6 +47,8 @@ import org.apache.poi.xssf.usermodel.*;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import javax.imageio.ImageIO;
 
 public class Controller {
     private final static int LIMIT = 25;
@@ -73,8 +90,10 @@ public class Controller {
 
 
     private static ObservableList<Row> chosenList = FXCollections.observableArrayList();
+    private static Stage primaryStage;
 
-    public static void init(Parent root){
+    public static void init(Parent root, Stage stage){
+        primaryStage = stage;
 
         splitPane = (SplitPane) root.getChildrenUnmodifiable().get(0);
         anchorPane_main = (AnchorPane) splitPane.getItems().get(0);
@@ -209,6 +228,98 @@ public class Controller {
 
     public void Button_AddToChosen_Action(ActionEvent event){
         chosenList.addAll(TableView_Main.getSelectionModel().getSelectedItems());
+    }
+
+    public void  Menu_LoadNewFile_Action(ActionEvent event){
+        System.out.println("ready");
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Open Resource File");
+        fileChooser.getExtensionFilters().addAll(
+                new FileChooser.ExtensionFilter("All Files", "*.*"),
+                new FileChooser.ExtensionFilter("Excel", "*.xls"),
+                new FileChooser.ExtensionFilter("Excel new format", "*.xlsx")
+        );
+        File file = fileChooser.showOpenDialog(primaryStage);
+
+        if(file != null) {
+            StringBuilder sb = new StringBuilder();
+            try {
+                BufferedReader br = new BufferedReader(new FileReader(file));
+                String line = null;
+                while ((line = br.readLine()) != null) {
+                    sb.append(line + "\n");
+                }
+                br.close();
+                //System.out.println(sb.toString());
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        MultipartEntity entity = new MultipartEntity();
+        entity.addPart("file", new FileBody(file));
+
+        HttpPost request = new HttpPost("http://localhost:8080/component");
+        request.setEntity(entity);
+
+        HttpClient client = new DefaultHttpClient();
+        try {
+            HttpResponse response = client.execute(request);
+
+            if(response.getStatusLine().toString().contains("404")){
+                //entity.consumeContent();
+                //there is no mapping
+                MultipartEntity entity1 = new MultipartEntity();
+                entity1.addPart("name", new StringBody("Description 1+Description 2+Description 3"));
+                entity1.addPart("manufacturer", new StringBody("\\\"XAL\\\""));
+                entity1.addPart("price", new StringBody("EUR"));
+                entity1.addPart("code", new StringBody("Code"));
+
+                HttpPost request1 = new HttpPost("http://localhost:8080/mapping");
+                request1.setEntity(entity1);
+
+                HttpClient client1 = new DefaultHttpClient();
+
+                try {
+                    HttpResponse response1 = client1.execute(request1);
+                    System.out.println(response1.getStatusLine());
+                }  catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                /*URL object = null;
+                HttpURLConnection con = null;
+                System.out.println("new mapping");
+                try {
+                    String stringURL = null;
+                    try {
+                        stringURL = "http://localhost:8080/mapping?" +
+                                "name=" + URLEncoder.encode("Description 1+Description 2+Description 3", "UTF-8") +
+                                "&manufacturer=" + URLEncoder.encode("\"XAL\"", "UTF-8") +
+                                "&price=" + URLEncoder.encode("EUR", "UTF-8") +
+                                "&code=" + URLEncoder.encode("Code", "UTF-8");
+                    } catch (UnsupportedEncodingException e) {
+                        e.printStackTrace();
+                    }
+                    object = new URL(stringURL);
+                } catch (MalformedURLException e) {
+                    e.printStackTrace();
+                }
+
+                try {
+                    con = (HttpURLConnection) object.openConnection();
+                    con.setRequestMethod("POST");
+                    con.setRequestProperty("Accept", "application/json");
+                } catch (IOException e) {
+                    System.err.println("Can not open connection. " + e);
+                }
+                System.out.println("Con resp code: " + con.getResponseCode());*/
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public void Button_AddToExcel_Action(ActionEvent event){
