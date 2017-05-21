@@ -21,6 +21,8 @@ import java.sql.Time;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.control.cell.PropertyValueFactory;
@@ -57,6 +59,13 @@ public class Controller {
     private final static int LIMIT = 25;
 
     @FXML
+    private static TabPane TabPane;
+    @FXML
+    private static Tab TabSchedule;
+    @FXML
+    private static AnchorPane anchorPane_tabSch;
+
+    @FXML
     private static Button Button_Login;
     @FXML
     private static TextField TextFieldLogin;
@@ -67,6 +76,8 @@ public class Controller {
 
     @FXML
     private static SplitPane splitPane;
+    @FXML
+    private static ProgressBar ProgressBar;
     @FXML
     private static AnchorPane anchorPane_main;
     @FXML
@@ -103,6 +114,12 @@ public class Controller {
 
     private static ObservableList<Row> chosenList = FXCollections.observableArrayList();
     private static Stage primaryStage;
+    public static void init2(Parent root, Stage stage){
+        /*TabPane = (TabPane) root.getChildrenUnmodifiable().get(0);
+        TabSchedule = (Tab) TabPane.getTabs().get(0);
+        anchorPane_tabSch = (AnchorPane) TabSchedule.getContent();
+        Butto*/
+    }
     public static void init1(Parent root, Stage stage) {
         primaryStage = stage;
         RegSplitPane = (SplitPane) root.getChildrenUnmodifiable().get(0);
@@ -129,12 +146,14 @@ public class Controller {
         TextField_Name = (TextField) hBox_params.getChildren().get(2);
         TextField_Price = (TextField) hBox_params.getChildren().get(3);
 
+        ProgressBar = (ProgressBar) anchorPane_main.getChildren().get(5);
+
         TableView_Chosen = (TableView) anchorPane_chosen.getChildren().get(0);
         Button_AddToExcel = (Button) anchorPane_chosen.getChildren().get(1);
 
         TableView_Chosen.setItems(chosenList);
 
-        ((TableColumn)TableView_Chosen.getColumns().get(0)).setCellValueFactory(new PropertyValueFactory<>("code"));
+        ((TableColumn)TableView_Chosen.getColumns().get(0)).setCellValueFactory(new PropertyValueFactory<>("manufacturer"));
 
         ((TableColumn)TableView_Main.getColumns().get(0)).setCellValueFactory(new PropertyValueFactory<>("code"));
         ((TableColumn)TableView_Main.getColumns().get(1)).setCellValueFactory(new PropertyValueFactory<>("manufacturer"));
@@ -249,7 +268,6 @@ public class Controller {
     }
 
     public void  Menu_LoadNewFile_Action(ActionEvent event){
-        System.out.println("ready");
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Open Resource File");
         fileChooser.getExtensionFilters().addAll(
@@ -268,10 +286,22 @@ public class Controller {
                     sb.append(line + "\n");
                 }
                 br.close();
-                System.out.println(sb.toString());
+                //System.out.println(sb.toString());
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        ObservableList<Row> rowList = FXCollections.observableArrayList();
+
+        TableView_Main.setItems(rowList);
+
+        for (int i = 0; i < FileWorker.getSizeOfFile(); i++) {
+            try {
+                Row row = new Row(i);
+                rowList.add(row);
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }
@@ -339,40 +369,85 @@ public class Controller {
 //            e.printStackTrace();
 //        }
     }
-
-    public void Button_AddToExcel_Action(ActionEvent event){
-         try {
-
-             FileInputStream file = new FileInputStream(new File("C:\\Users\\User\\Desktop\\3.xlsx"));
-             //FileInputStream file = new FileInputStream(new File("C:\\test.xlsx"));
-             System.out.println(file);
-             XSSFWorkbook workbook = new XSSFWorkbook (file);
-             XSSFSheet sheet = workbook.getSheetAt(0);
-
-             for (int i = 0; i < chosenList.size(); i++){
-                 sheet.getRow(19 + i).getCell(0).setCellValue(chosenList.get(i).getManufacturer()); //производитель
-                 sheet.getRow(19 + i).getCell(1).setCellValue(chosenList.get(i).getCode()); // код
-                 sheet.getRow(19 + i).getCell(2).setCellValue(chosenList.get(i).getName()); // описание
-                 sheet.getRow(19 + i).getCell(5).setCellValue(Double.parseDouble(chosenList.get(i).getPrice())); // цена
-                 if(i >= chosenList.size() - 1)
-                     break;
-                 sheet.shiftRows(20 + i, sheet.getLastRowNum(), 1);
-                 sheet.createRow(20 + i);
-                 CopyRow.CopyRow1(workbook, sheet, 19 + i, 20 + i);
-             }
-
-             sheet.setForceFormulaRecalculation(true);
-
-             file.close();
-
-             FileOutputStream outFile =new FileOutputStream(new File("C:\\Users\\User\\Desktop\\1.xlsx"));
-             workbook.write(outFile);
-             outFile.close();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
+    public void Menu_Schedule_Action(ActionEvent event){
+        Parent root = null;
+        try {
+            root = FXMLLoader.load(getClass().getResource("ScheduleScene.fxml"));
         } catch (IOException e) {
             e.printStackTrace();
         }
+        primaryStage.setScene(new Scene(root));
+        Controller.init2(root, primaryStage);
+    }
+
+    public void Button_AddToExcel_Action(ActionEvent event){
+        new Thread() {
+            public void run() {
+                for (int i = 0; i < FileWorker.getSizeOfFile(); i++) {
+                    try {
+                        Thread.sleep(ThreadLocalRandom.current().nextInt(500, 1001));
+                        ProgressBar.setProgress(((double)i+1) / 12);
+                        System.out.println(((double)i+1) / 12);
+                        if(i == 11){
+                            TableView_Chosen.getItems().clear();
+                            TableView_Main.getItems().clear();
+
+                            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                            alert.setTitle("Information Dialog");
+                            alert.setHeaderText(null);
+                            alert.setContentText("I have a great message for you!");
+
+                            alert.showAndWait();
+
+                            ProgressBar.setProgress((double) 0);
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+
+        }.start();
+
+//        /*Alert alert = new Alert(Alert.AlertType.INFORMATION);
+//        alert.setTitle("Information Dialog");
+//        alert.setHeaderText(null);
+//        alert.setContentText("I have a great message for you!");
+//
+//        alert.showAndWait();*/
+//
+//         /*try {
+//
+//             FileInputStream file = new FileInputStream(new File("C:\\Users\\User\\Desktop\\3.xlsx"));
+//             //FileInputStream file = new FileInputStream(new File("C:\\test.xlsx"));
+//             System.out.println(file);
+//             XSSFWorkbook workbook = new XSSFWorkbook (file);
+//             XSSFSheet sheet = workbook.getSheetAt(0);
+//
+//             for (int i = 0; i < chosenList.size(); i++){
+//                 sheet.getRow(19 + i).getCell(0).setCellValue(chosenList.get(i).getManufacturer()); //производитель
+//                 sheet.getRow(19 + i).getCell(1).setCellValue(chosenList.get(i).getCode()); // код
+//                 sheet.getRow(19 + i).getCell(2).setCellValue(chosenList.get(i).getName()); // описание
+//                 sheet.getRow(19 + i).getCell(5).setCellValue(Double.parseDouble(chosenList.get(i).getPrice())); // цена
+//                 if(i >= chosenList.size() - 1)
+//                     break;
+//                 sheet.shiftRows(20 + i, sheet.getLastRowNum(), 1);
+//                 sheet.createRow(20 + i);
+//                 CopyRow.CopyRow1(workbook, sheet, 19 + i, 20 + i);
+//             }
+//
+//             sheet.setForceFormulaRecalculation(true);
+//
+//             file.close();
+//
+//             FileOutputStream outFile =new FileOutputStream(new File("C:\\Users\\User\\Desktop\\1.xlsx"));
+//             workbook.write(outFile);
+//             outFile.close();
+//        } catch (FileNotFoundException e) {
+//            e.printStackTrace();
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }*/
 
     }
 
@@ -417,11 +492,40 @@ public class Controller {
         return null;
     }
 
+
+    public void Button_SaveSchedule_Action(ActionEvent event){
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Information");
+        alert.setHeaderText(null);
+        alert.setContentText("Creation of workitems was scheduled!");
+
+        alert.showAndWait();
+
+        Parent root = null;
+        try {
+            root = FXMLLoader.load(getClass().getResource("MainScene.fxml"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        primaryStage.setScene(new Scene(root));
+    }
+
+    public void Button_BackToMainPage_Action(ActionEvent event){
+        Parent root = null;
+        try {
+            root = FXMLLoader.load(getClass().getResource("MainScene.fxml"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        primaryStage.setScene(new Scene(root));
+    }
+
+
     public void Button_Login_Action(ActionEvent event){
         try {
-            if(TextFieldLogin.getText().trim().equals("dzianis.bredneu@sk.ibm.com")) {
+            if(TextFieldLogin.getText().trim().equals("dzianis.bredneu@sk.ibm.com")) { // dzianis.bredneu@sk.ibm.com
                 Thread.sleep(4000);
-                Parent root = FXMLLoader.load(getClass().getResource("sampleTestPagination.fxml"));
+                Parent root = FXMLLoader.load(getClass().getResource("MainScene.fxml"));
                 primaryStage.setMinHeight(480);
                 primaryStage.setMinWidth(750);
                 primaryStage.setResizable(true);

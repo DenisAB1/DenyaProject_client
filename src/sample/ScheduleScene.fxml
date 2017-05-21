@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.text.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import java.lang.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+
+<AnchorPane minWidth="515.0" prefHeight="323.0" prefWidth="515.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sample.Controller">
+   <children>
+      <TabPane layoutX="73.0" layoutY="38.0" prefHeight="200.0" prefWidth="200.0" tabClosingPolicy="UNAVAILABLE" AnchorPane.bottomAnchor="5.0" AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="5.0">
+        <tabs>
+          <Tab closable="false" text="Schedule creation">
+            <content>
+              <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                     <children>
+                        <TextField layoutX="32.0" layoutY="24.0" promptText="9" />
+                        <TextField layoutX="32.0" layoutY="63.0" promptText="0" />
+                        <TextField layoutX="32.0" layoutY="101.0" promptText="1-31" />
+                        <TextField layoutX="32.0" layoutY="140.0" promptText="*" />
+                        <TextField layoutX="32.0" layoutY="180.0" promptText="Mon-Fri" />
+                        <Label layoutX="253.0" layoutY="28.0" text="Hours" />
+                        <Label layoutX="253.0" layoutY="67.0" text="Minutes" />
+                        <Label layoutX="253.0" layoutY="105.0" text="Day of month" />
+                        <Label layoutX="253.0" layoutY="144.0" text="Month" />
+                        <Label layoutX="253.0" layoutY="184.0" text="Day of week" />
+                        <Button layoutX="9.0" layoutY="232.0" mnemonicParsing="false" onAction="#Button_SaveSchedule_Action" text="Save" AnchorPane.bottomAnchor="30.0" AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="5.0" />
+                     </children>
+                  </AnchorPane>
+            </content>
+          </Tab>
+        </tabs>
+      </TabPane>
+      <Button mnemonicParsing="false" onAction="#Button_BackToMainPage_Action" text="Back" AnchorPane.bottomAnchor="5.0" AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="5.0" />
+   </children>
+</AnchorPane>

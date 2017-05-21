@@ -17,16 +17,16 @@
                <children>
                   <TableView fx:id="TableView_Main" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" pickOnBounds="false" prefHeight="406.0" prefWidth="506.0" AnchorPane.bottomAnchor="125.0" AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="45.0" AnchorPane.topAnchor="30.0">
                      <columns>
-                        <TableColumn editable="false" prefWidth="75.0" text="Код" />
+                        <TableColumn editable="false" prefWidth="75.0" text="Who" />
                         <TableColumn editable="false" prefWidth="147.0" text="Subject" />
-                        <TableColumn editable="false" prefWidth="156.0" text="Due date" />
-                        <TableColumn editable="false" text="Цена" />
+                        <TableColumn editable="false" prefWidth="156.0" text="Date" />
+                        <TableColumn editable="false" text="Time" />
                      </columns>
                      <columnResizePolicy>
                         <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
                      </columnResizePolicy>
                   </TableView>
-                  <Button fx:id="Button_GetRow" centerShape="false" layoutX="134.0" layoutY="367.0" mnemonicParsing="false" onAction="#Button_GetRow_Action" prefHeight="25.0" prefWidth="190.0" text="Найти записи" AnchorPane.bottomAnchor="14.0" AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="45.0" />
+                  <Button fx:id="Button_GetRow" centerShape="false" layoutX="134.0" layoutY="367.0" mnemonicParsing="false" onAction="#Button_GetRow_Action" prefHeight="25.0" prefWidth="190.0" text="Найти записи" visible="false" AnchorPane.bottomAnchor="14.0" AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="45.0" />
                   <Button fx:id="Button_AddToChosen" layoutX="502.0" layoutY="31.0" maxWidth="35.0" mnemonicParsing="false" onAction="#Button_AddToChosen_Action" prefWidth="35.0" text="- &gt;" AnchorPane.bottomAnchor="125.0" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="55.0" />
                   <Pagination fx:id="pagination" prefHeight="50.0" prefWidth="200.0" AnchorPane.bottomAnchor="75.0" AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="45.0" />
                   <HBox fx:id="hBox_params" layoutX="5.0" layoutY="331.0" prefHeight="25.0" prefWidth="200.0" AnchorPane.bottomAnchor="50.0" AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="45.0">
@@ -49,6 +49,7 @@
                            </HBox.margin></TextField>
                      </children>
                   </HBox>
+                  <ProgressBar fx:id="ProgressBar" layoutX="5.0" layoutY="383.0" prefHeight="18.0" prefWidth="531.0" progress="0.0" AnchorPane.bottomAnchor="5.0" AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="5.0" />
                </children>
             </AnchorPane>
           <AnchorPane maxWidth="200.0" minHeight="0.0" minWidth="200.0" prefHeight="398.0" prefWidth="200.0">
@@ -68,15 +69,15 @@
       </SplitPane>
       <MenuBar AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0">
         <menus>
-          <Menu mnemonicParsing="false" text="Меню">
+          <Menu mnemonicParsing="false" text="Menu">
             <items>
               <MenuItem mnemonicParsing="false" text="My created Items" />
                   <MenuItem mnemonicParsing="false" onAction="#Menu_LoadNewFile_Action" text="Open source...." />
-                  <MenuItem mnemonicParsing="false" text="Schedule..." />
+                  <MenuItem mnemonicParsing="false" onAction="#Menu_Schedule_Action" text="Schedule..." />
                   <MenuItem mnemonicParsing="false" text="Report" />
             </items>
           </Menu>
-          <Menu mnemonicParsing="false" text="Помощь">
+          <Menu mnemonicParsing="false" text="Help">
             <items>
               <MenuItem mnemonicParsing="false" text="+375447637617" />
             </items>
